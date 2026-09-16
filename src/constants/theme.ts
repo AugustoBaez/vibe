@@ -9,22 +9,43 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#09090B',
+    background: '#FFFFFF',
+    backgroundElement: '#F4F4F5',
+    backgroundSelected: '#E4E4E7',
+    textSecondary: '#52525B',
+    border: '#E4E4E7',
+    accent: '#16A34A',
+    like: '#E11D48',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#FAFAFA',
+    background: '#09090B',
+    backgroundElement: '#17171A',
+    backgroundSelected: '#26262A',
+    textSecondary: '#A1A1AA',
+    border: '#27272A',
+    accent: '#1DB954',
+    like: '#FB7185',
   },
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+
+/** Fallback accent used before a user picks their own profile color. */
+export const DefaultAccent = '#1DB954';
+
+/** Accent colors a user can pick from when customizing their profile. */
+export const AccentPalette = [
+  '#1DB954',
+  '#7C3AED',
+  '#EC4899',
+  '#F97316',
+  '#FACC15',
+  '#06B6D4',
+  '#3B82F6',
+  '#EF4444',
+] as const;
 
 export const Fonts = Platform.select({
   ios: {
@@ -59,6 +80,13 @@ export const Spacing = {
   four: 24,
   five: 32,
   six: 64,
+} as const;
+
+export const Radius = {
+  small: 6,
+  medium: 12,
+  large: 20,
+  pill: 999,
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
