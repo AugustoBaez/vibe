@@ -1,3 +1,10 @@
+html,
+body,
+#root {
+  background-color: #09090b;
+  color: #fafafa;
+}
+
 :root {
   --font-display:
     Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
