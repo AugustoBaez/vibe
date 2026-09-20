@@ -1,4 +1,5 @@
-import { StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DemoSignInButton, SpotifyConnectButton } from '@/components/spotify-connect-button';
@@ -8,6 +9,7 @@ import { Icon } from '@/components/ui/icon';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { gradientFromSeed } from '@/lib/gradient';
+import { getSpotifyRedirectUri } from '@/lib/spotify/auth';
 import { SPOTIFY_ENABLED } from '@/lib/spotify/config';
 
 const perks = [
@@ -18,6 +20,16 @@ const perks = [
 
 export default function ConnectScreen() {
   const theme = useTheme();
+  const redirectUri = getSpotifyRedirectUri();
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    if (window.location.hostname !== 'localhost') return;
+
+    const next = new URL(window.location.href);
+    next.hostname = '127.0.0.1';
+    window.location.replace(next.toString());
+  }, []);
 
   return (
     <ThemedView style={styles.container}>
@@ -54,9 +66,14 @@ export default function ConnectScreen() {
 
           <ThemedText type="tiny" themeColor="textSecondary" style={styles.footnote}>
             {SPOTIFY_ENABLED
-              ? 'Spotify login needs a development build — it does not work in Expo Go.'
+              ? 'Add this exact Redirect URI in the Spotify dashboard, then save:'
               : 'Running on demo data. Set EXPO_PUBLIC_SPOTIFY_CLIENT_ID in .env to connect a real Spotify account.'}
           </ThemedText>
+          {SPOTIFY_ENABLED ? (
+            <ThemedText type="code" themeColor="textSecondary" selectable style={styles.redirect}>
+              {redirectUri}
+            </ThemedText>
+          ) : null}
         </View>
       </SafeAreaView>
     </ThemedView>
@@ -114,5 +131,8 @@ const styles = StyleSheet.create({
   footnote: {
     textAlign: 'center',
     paddingTop: Spacing.one,
+  },
+  redirect: {
+    textAlign: 'center',
   },
 });

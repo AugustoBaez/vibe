@@ -4,7 +4,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Button } from '@/components/ui/button';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useSpotifyAuth } from '@/lib/spotify/auth';
+import { isExpoGo, useSpotifyAuthContext } from '@/lib/spotify/auth';
 import { SPOTIFY_ENABLED } from '@/lib/spotify/config';
 import { useSessionStore } from '@/stores/session-store';
 
@@ -14,7 +14,16 @@ import { useSessionStore } from '@/stores/session-store';
  */
 function RealSpotifyButton() {
   const theme = useTheme();
-  const { connect, pending, error, ready } = useSpotifyAuth();
+  const { connect, pending, error, ready } = useSpotifyAuthContext();
+
+  if (isExpoGo) {
+    return (
+      <ThemedText type="tiny" themeColor="textSecondary" style={styles.warning}>
+        Spotify login does not work in Expo Go. Open the web app at http://127.0.0.1:8083 or run a
+        development build.
+      </ThemedText>
+    );
+  }
 
   return (
     <View style={styles.group}>
@@ -58,5 +67,8 @@ const styles = StyleSheet.create({
   group: {
     alignSelf: 'stretch',
     gap: Spacing.two,
+  },
+  warning: {
+    textAlign: 'center',
   },
 });

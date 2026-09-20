@@ -22,6 +22,19 @@ function createMemoryStorage(): StateStorage {
  * unreliable (React Native may define `window` as a stub), so each call falls
  * back to memory if the real backend is not actually usable.
  */
+function withTimeout<T>(value: T | Promise<T>, fallback: T, ms = 1500): T | Promise<T> {
+  if (value == null || typeof (value as Promise<T>).then !== 'function') {
+    return value;
+  }
+
+  return Promise.race([
+    value as Promise<T>,
+    new Promise<T>((resolve) => {
+      setTimeout(() => resolve(fallback), ms);
+    }),
+  ]);
+}
+
 function createGuardedStorage(getStorage: () => StateStorage): StateStorage {
   const memory = createMemoryStorage();
 
@@ -36,7 +49,7 @@ function createGuardedStorage(getStorage: () => StateStorage): StateStorage {
   return {
     getItem: (key) => {
       try {
-        return resolve().getItem(key);
+        return withTimeout(resolve().getItem(key), null);
       } catch {
         return memory.getItem(key);
       }

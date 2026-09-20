@@ -2,11 +2,13 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { View } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { SpotifyAuthProvider } from '@/lib/spotify/auth';
 import { useSpotifySync } from '@/lib/spotify/use-spotify-sync';
-import { useIsSignedIn, useSessionHydrated } from '@/stores/session-store';
+import { useIsSignedIn, useSessionHydrated, useSessionStore } from '@/stores/session-store';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,11 +25,16 @@ export default function RootLayout() {
   useEffect(() => {
     if (hydrated) {
       void SplashScreen.hideAsync();
+      return;
     }
-  }, [hydrated]);
 
-  // Avoids a flash of the sign-in screen before the stored session is read.
-  if (!hydrated) return null;
+    const timeout = setTimeout(() => {
+      useSessionStore.setState({ hydrated: true });
+      void SplashScreen.hideAsync();
+    }, 1500);
+
+    return () => clearTimeout(timeout);
+  }, [hydrated]);
 
   const base = isDark ? DarkTheme : DefaultTheme;
   const navigationTheme = {
@@ -44,26 +51,32 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={navigationTheme}>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
-        <Stack.Protected guard={isSignedIn}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="post/[id]" options={{ title: 'Post' }} />
-          <Stack.Screen name="user/[id]" options={{ title: '' }} />
-          <Stack.Screen
-            name="compose"
-            options={{ title: 'Share a song', presentation: 'modal' }}
-          />
-          <Stack.Screen
-            name="edit-profile"
-            options={{ title: 'Customize profile', presentation: 'modal' }}
-          />
-        </Stack.Protected>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <StatusBar style="light" />
+        <SpotifyAuthProvider>
+          <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', contentStyle: { backgroundColor: colors.background } }}>
+            <Stack.Protected guard={!isSignedIn}>
+              <Stack.Screen name="connect" options={{ headerShown: false }} />
+            </Stack.Protected>
 
-        <Stack.Protected guard={!isSignedIn}>
-          <Stack.Screen name="connect" options={{ headerShown: false }} />
-        </Stack.Protected>
-      </Stack>
+            <Stack.Screen name="spotify-auth" options={{ headerShown: false }} />
+
+            <Stack.Protected guard={isSignedIn}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="post/[id]" options={{ title: 'Post' }} />
+              <Stack.Screen name="user/[id]" options={{ title: '' }} />
+              <Stack.Screen
+                name="compose"
+                options={{ title: 'Share a song', presentation: 'modal' }}
+              />
+              <Stack.Screen
+                name="edit-profile"
+                options={{ title: 'Customize profile', presentation: 'modal' }}
+              />
+            </Stack.Protected>
+          </Stack>
+        </SpotifyAuthProvider>
+      </View>
     </ThemeProvider>
   );
 }

@@ -12,16 +12,24 @@ export type SpotifyTokens = {
   expiresAt: number | null;
 };
 
+export type PendingPkce = {
+  codeVerifier: string;
+  redirectUri: string;
+};
+
 type SessionState = {
   currentUserId: string | null;
   tokens: SpotifyTokens | null;
   /** Signed in against the seed data instead of a real Spotify app. */
   demoMode: boolean;
   hydrated: boolean;
+  /** PKCE verifier kept across the Android activity hop back from Spotify. */
+  pendingPkce: PendingPkce | null;
 
   signInWithSpotify: (tokens: SpotifyTokens, userId?: string) => void;
   signInAsDemo: () => void;
   setTokens: (tokens: SpotifyTokens) => void;
+  setPendingPkce: (pendingPkce: PendingPkce | null) => void;
   signOut: () => void;
 };
 
@@ -32,24 +40,28 @@ export const useSessionStore = create<SessionState>()(
       tokens: null,
       demoMode: false,
       hydrated: false,
+      pendingPkce: null,
 
       signInWithSpotify: (tokens, userId = CURRENT_USER_ID) =>
-        set({ currentUserId: userId, tokens, demoMode: false }),
+        set({ currentUserId: userId, tokens, demoMode: false, pendingPkce: null }),
 
       signInAsDemo: () => set({ currentUserId: CURRENT_USER_ID, tokens: null, demoMode: true }),
 
       setTokens: (tokens) => set({ tokens }),
 
-      signOut: () => set({ currentUserId: null, tokens: null, demoMode: false }),
+      setPendingPkce: (pendingPkce) => set({ pendingPkce }),
+
+      signOut: () => set({ currentUserId: null, tokens: null, demoMode: false, pendingPkce: null }),
     }),
     {
       name: 'vibe-session',
       version: 1,
       storage: createJSONStorage(() => secureStorage),
-      partialize: ({ currentUserId, tokens, demoMode }) => ({
+      partialize: ({ currentUserId, tokens, demoMode, pendingPkce }) => ({
         currentUserId,
         tokens,
         demoMode,
+        pendingPkce,
       }),
       onRehydrateStorage: () => () => {
         useSessionStore.setState({ hydrated: true });
@@ -57,6 +69,12 @@ export const useSessionStore = create<SessionState>()(
     }
   )
 );
+
+setTimeout(() => {
+  if (!useSessionStore.getState().hydrated) {
+    useSessionStore.setState({ hydrated: true });
+  }
+}, 1500);
 
 export function useIsSignedIn() {
   return useSessionStore((state) => state.currentUserId !== null);
