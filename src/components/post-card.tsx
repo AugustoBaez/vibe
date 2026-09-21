@@ -22,12 +22,12 @@ import { useCurrentUserId } from '@/stores/session-store';
 import { useUser } from '@/stores/users-store';
 import type { PostSubject } from '@/types';
 
-function PostSubjectView({ subject, onPress }: { subject: PostSubject; onPress: () => void }) {
+function PostSubjectView({ subject }: { subject: PostSubject }) {
   const track = useTrack(subject.kind === 'track' ? subject.trackId : null);
   const playlist = usePlaylist(subject.kind === 'playlist' ? subject.playlistId : null);
 
-  if (track) return <TrackRow track={track} onPress={onPress} />;
-  if (playlist) return <PlaylistCard playlist={playlist} onPress={onPress} />;
+  if (track) return <TrackRow track={track} />;
+  if (playlist) return <PlaylistCard playlist={playlist} />;
 
   return null;
 }
@@ -51,10 +51,17 @@ export function PostCard({ postId }: { postId: string }) {
   }
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Open comments"
+      onPress={openComments}
+      style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}>
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push({ pathname: '/user/[id]', params: { id: author.id } })}
+        onPress={(event) => {
+          event.stopPropagation();
+          router.push({ pathname: '/user/[id]', params: { id: author.id } });
+        }}
         style={({ pressed }) => [styles.header, pressed && styles.pressed]}>
         <Avatar user={author} size={40} />
 
@@ -68,18 +75,10 @@ export function PostCard({ postId }: { postId: string }) {
         </View>
       </Pressable>
 
-      {post.caption ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open comments"
-          onPress={openComments}
-          style={({ pressed }) => [pressed && styles.pressed]}>
-          <ThemedText style={styles.caption}>{post.caption}</ThemedText>
-        </Pressable>
-      ) : null}
+      {post.caption ? <ThemedText style={styles.caption}>{post.caption}</ThemedText> : null}
 
       <View style={[styles.subject, { borderColor: theme.border }]}>
-        <PostSubjectView subject={post.subject} onPress={openComments} />
+        <PostSubjectView subject={post.subject} />
       </View>
 
       <View style={styles.actions}>
@@ -89,18 +88,14 @@ export function PostCard({ postId }: { postId: string }) {
           onPress={() => toggleLike(postId, currentUserId)}
         />
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open comments"
-          onPress={openComments}
-          style={({ pressed }) => [styles.action, pressed && styles.pressed]}>
+        <View style={styles.action}>
           <Icon name="comment" size={18} color={theme.textSecondary} />
           <ThemedText type="small" themeColor="textSecondary">
             {commentCount}
           </ThemedText>
-        </Pressable>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

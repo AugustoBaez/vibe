@@ -49,7 +49,10 @@ export function LikeButton({
       accessibilityRole="button"
       accessibilityLabel={liked ? 'Unlike' : 'Like'}
       hitSlop={8}
-      onPress={handlePress}
+      onPress={(event) => {
+        event.stopPropagation();
+        handlePress();
+      }}
       style={styles.action}>
       <Animated.View style={heartMotion}>
         <MaterialIcons

@@ -24,7 +24,14 @@ export function TrackRow({ track, rank, right, onPress, selected = false }: Trac
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${track.name} by ${track.artist}`}
-      onPress={onPress ?? (() => openSpotifyLink(track.spotifyUrl))}
+      onPress={(event) => {
+        event.stopPropagation();
+        if (onPress) {
+          onPress();
+          return;
+        }
+        openSpotifyLink(track.spotifyUrl);
+      }}
       style={({ pressed }) => [
         styles.row,
         selected && { backgroundColor: theme.backgroundSelected },
