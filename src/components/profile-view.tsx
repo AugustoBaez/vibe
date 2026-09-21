@@ -40,12 +40,12 @@ function withAlpha(hex: string, alpha: number) {
 }
 
 function photoMaskGradient() {
-  return 'linear-gradient(to bottom, transparent 0%, #000 16%, #000 52%, transparent 100%)';
+  return 'linear-gradient(to bottom, #000 0%, #000 48%, transparent 100%)';
 }
 
 function heroBlendCss(color: string) {
   const clear = withAlpha(color, 0);
-  return `linear-gradient(to bottom, ${color} 0%, ${withAlpha(color, 0.55)} 10%, ${clear} 26%, ${clear} 48%, ${withAlpha(color, 0.28)} 66%, ${withAlpha(color, 0.7)} 84%, ${color} 100%)`;
+  return `linear-gradient(to bottom, ${clear} 0%, ${clear} 42%, ${withAlpha(color, 0.28)} 66%, ${withAlpha(color, 0.72)} 86%, ${color} 100%)`;
 }
 
 function HeroFade({ color }: { color: string }) {
@@ -158,67 +158,71 @@ function ProfileHero({
           styles.heroPhotoLayer,
           Platform.OS === 'web' ? ({ opacity: 0.999, isolation: 'isolate' } as object) : null,
         ]}>
-        {showPhoto ? (
-          Platform.OS === 'web' ? (
-            <Animated.View
-              pointerEvents="none"
-              style={[
-                {
-                  position: 'absolute',
-                  left: 0,
-                  width,
-                  height: photoHeight,
-                  backgroundImage: `url(${JSON.stringify(photoUrl)})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  maskImage: photoMaskGradient(),
-                  WebkitMaskImage: photoMaskGradient(),
-                } as object,
-                photoMotion,
-              ]}
-            />
-          ) : (
-            <View collapsable={false} style={{ width, height: maxHeight, overflow: 'hidden' }}>
-              <ImageBackground
-                pointerEvents="none"
-                source={{ uri: photoUrl }}
-                resizeMode="cover"
-                accessibilityLabel={`${user.displayName}'s profile photo`}
-                onError={() => setPhotoFailed(true)}
-                style={{ width, height: maxHeight }}
-                imageStyle={{ width, height: photoHeight, elevation: 0 }}>
-                <RNImage
-                  pointerEvents="none"
-                  source={heroBlend}
-                  resizeMode="stretch"
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    width,
-                    height: maxHeight,
-                    zIndex: 2,
-                    elevation: 6,
-                  }}
-                />
-              </ImageBackground>
-            </View>
-          )
-        ) : (
-          <View
+        {Platform.OS === 'web' ? (
+          <Animated.View
             pointerEvents="none"
             style={[
-              { width, height: maxHeight, backgroundColor: user.accentColor },
-              { experimental_backgroundImage: wash },
-              Platform.OS === 'web' ? ({ backgroundImage: wash } as object) : null,
+              {
+                position: 'absolute',
+                left: 0,
+                width,
+                height: photoHeight,
+                backgroundColor: user.accentColor,
+                backgroundImage: showPhoto ? `url(${JSON.stringify(photoUrl)})` : wash,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                maskImage: photoMaskGradient(),
+                WebkitMaskImage: photoMaskGradient(),
+              } as object,
+              photoMotion,
+            ]}
+          />
+        ) : showPhoto ? (
+          <View collapsable={false} style={{ width, height: maxHeight, overflow: 'hidden' }}>
+            <ImageBackground
+              pointerEvents="none"
+              source={{ uri: photoUrl }}
+              resizeMode="cover"
+              accessibilityLabel={`${user.displayName}'s profile photo`}
+              onError={() => setPhotoFailed(true)}
+              style={{ width, height: maxHeight }}
+              imageStyle={{ width, height: photoHeight, elevation: 0 }}>
+              <RNImage
+                pointerEvents="none"
+                source={heroBlend}
+                resizeMode="stretch"
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  width,
+                  height: maxHeight,
+                  zIndex: 2,
+                  elevation: 6,
+                }}
+              />
+            </ImageBackground>
+          </View>
+        ) : (
+          <Animated.View
+            pointerEvents="none"
+            collapsable={false}
+            style={[
+              {
+                position: 'absolute',
+                left: 0,
+                width,
+                height: photoHeight,
+                backgroundColor: user.accentColor,
+                experimental_backgroundImage: wash,
+              },
+              photoMotion,
             ]}
           />
         )}
       </View>
 
-      {showPhoto && Platform.OS !== 'web' ? (
-        <PhotoBlendOverlay width={width} height={maxHeight} />
-      ) : null}
+      {Platform.OS !== 'web' ? <PhotoBlendOverlay width={width} height={maxHeight} /> : null}
       <HeroFade color={theme.background} />
 
       {subtitle ? (
