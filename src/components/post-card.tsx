@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { LikeButton } from '@/components/like-button';
 import { PlaylistCard } from '@/components/playlist-card';
 import { ThemedText } from '@/components/themed-text';
 import { TrackRow } from '@/components/track-row';
@@ -70,16 +71,11 @@ export function PostCard({ postId }: { postId: string }) {
       </View>
 
       <View style={styles.actions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={liked ? 'Unlike' : 'Like'}
+        <LikeButton
+          liked={liked}
+          count={likeCount}
           onPress={() => toggleLike(postId, currentUserId)}
-          style={({ pressed }) => [styles.action, pressed && styles.pressed]}>
-          <Icon name={liked ? 'liked' : 'like'} size={18} color={liked ? theme.like : theme.textSecondary} />
-          <ThemedText type="small" themeColor="textSecondary">
-            {likeCount}
-          </ThemedText>
-        </Pressable>
+        />
 
         <Pressable
           accessibilityRole="button"

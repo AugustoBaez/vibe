@@ -16,7 +16,7 @@ export const Colors = {
     textSecondary: '#52525B',
     border: '#E4E4E7',
     accent: '#16A34A',
-    like: '#E11D48',
+    like: '#FF0038',
   },
   dark: {
     text: '#FAFAFA',
@@ -26,7 +26,7 @@ export const Colors = {
     textSecondary: '#A1A1AA',
     border: '#242424',
     accent: '#1DB954',
-    like: '#FB7185',
+    like: '#FF0038',
   },
 } as const;
 
