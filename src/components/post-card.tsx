@@ -22,12 +22,12 @@ import { useCurrentUserId } from '@/stores/session-store';
 import { useUser } from '@/stores/users-store';
 import type { PostSubject } from '@/types';
 
-function PostSubjectView({ subject }: { subject: PostSubject }) {
+function PostSubjectView({ subject, onPress }: { subject: PostSubject; onPress: () => void }) {
   const track = useTrack(subject.kind === 'track' ? subject.trackId : null);
   const playlist = usePlaylist(subject.kind === 'playlist' ? subject.playlistId : null);
 
-  if (track) return <TrackRow track={track} />;
-  if (playlist) return <PlaylistCard playlist={playlist} />;
+  if (track) return <TrackRow track={track} onPress={onPress} />;
+  if (playlist) return <PlaylistCard playlist={playlist} onPress={onPress} />;
 
   return null;
 }
@@ -45,6 +45,10 @@ export function PostCard({ postId }: { postId: string }) {
   const toggleLike = useFeedStore((state) => state.toggleLike);
 
   if (!post || !author) return null;
+
+  function openComments() {
+    router.push({ pathname: '/post/[id]', params: { id: postId } });
+  }
 
   return (
     <View style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}>
@@ -64,10 +68,18 @@ export function PostCard({ postId }: { postId: string }) {
         </View>
       </Pressable>
 
-      {post.caption ? <ThemedText style={styles.caption}>{post.caption}</ThemedText> : null}
+      {post.caption ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open comments"
+          onPress={openComments}
+          style={({ pressed }) => [pressed && styles.pressed]}>
+          <ThemedText style={styles.caption}>{post.caption}</ThemedText>
+        </Pressable>
+      ) : null}
 
       <View style={[styles.subject, { borderColor: theme.border }]}>
-        <PostSubjectView subject={post.subject} />
+        <PostSubjectView subject={post.subject} onPress={openComments} />
       </View>
 
       <View style={styles.actions}>
@@ -80,7 +92,7 @@ export function PostCard({ postId }: { postId: string }) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Open comments"
-          onPress={() => router.push({ pathname: '/post/[id]', params: { id: postId } })}
+          onPress={openComments}
           style={({ pressed }) => [styles.action, pressed && styles.pressed]}>
           <Icon name="comment" size={18} color={theme.textSecondary} />
           <ThemedText type="small" themeColor="textSecondary">
@@ -120,7 +132,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.four,
-    paddingHorizontal: Spacing.half,
   },
   action: {
     flexDirection: 'row',

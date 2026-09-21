@@ -9,6 +9,7 @@ type SpotifyTrack = {
   id: string;
   name: string;
   duration_ms: number;
+  preview_url: string | null;
   album: { name: string; images: SpotifyImage[] };
   artists: { name: string }[];
   external_urls: { spotify: string };
@@ -87,7 +88,8 @@ function toTrack(raw: SpotifyTrack): Track {
     artist: raw.artists.map((artist) => artist.name).join(', '),
     album: raw.album.name,
     durationMs: raw.duration_ms,
-    artworkUrl: pickArtwork(raw.album.images),
+    artworkUrl: pickLargestImage(raw.album.images) || pickArtwork(raw.album.images),
+    previewUrl: raw.preview_url ?? '',
     spotifyUrl: raw.external_urls.spotify,
   };
 }

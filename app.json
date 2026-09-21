@@ -40,7 +40,16 @@
         }
       ],
       "expo-secure-store",
-      "expo-system-ui"
+      "expo-system-ui",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false,
+          "recordAudioAndroid": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

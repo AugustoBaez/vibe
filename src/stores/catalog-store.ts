@@ -48,6 +48,28 @@ function mergeByArtwork<T extends { artworkUrl: string }>(
   return out;
 }
 
+function mergeTracks(seed: Record<string, Track>, extra?: Record<string, Track>): Record<string, Track> {
+  const out = { ...seed };
+  if (!extra) return out;
+
+  for (const [id, item] of Object.entries(extra)) {
+    const existing = out[id];
+    if (!existing) {
+      out[id] = { ...item, previewUrl: item.previewUrl ?? '' };
+      continue;
+    }
+
+    out[id] = {
+      ...existing,
+      ...item,
+      artworkUrl: item.artworkUrl || existing.artworkUrl,
+      previewUrl: item.previewUrl || existing.previewUrl || '',
+    };
+  }
+
+  return out;
+}
+
 export const useCatalogStore = create<CatalogState>()(
   persist(
     (set) => ({
@@ -68,7 +90,7 @@ export const useCatalogStore = create<CatalogState>()(
         const extra = (persisted ?? {}) as Partial<CatalogState>;
         return {
           ...current,
-          tracks: mergeByArtwork(current.tracks, extra.tracks),
+          tracks: mergeTracks(current.tracks, extra.tracks),
           playlists: mergeByArtwork(current.playlists, extra.playlists),
         };
       },

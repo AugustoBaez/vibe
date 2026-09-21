@@ -27,6 +27,7 @@ const icons = {
   track: { ios: 'music.note', android: 'music_note', web: 'music_note' },
   playlist: { ios: 'music.note.list', android: 'queue_music', web: 'queue_music' },
   play: { ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' },
+  pause: { ios: 'pause.fill', android: 'pause', web: 'pause' },
   external: { ios: 'arrow.up.right.square', android: 'open_in_new', web: 'open_in_new' },
   send: { ios: 'arrow.up.circle.fill', android: 'send', web: 'send' },
   signOut: { ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' },
