@@ -1,12 +1,10 @@
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Image as RNImage, ImageBackground, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
   type SharedValue,
-  useAnimatedProps,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -31,6 +29,8 @@ import { useCurrentUserId } from '@/stores/session-store';
 import { useFollowerCount, useFollowingCount, useUser } from '@/stores/users-store';
 import type { User } from '@/types';
 
+const heroBlend = require('../../assets/images/hero-blend.png');
+
 function withAlpha(hex: string, alpha: number) {
   const value = hex.replace('#', '');
   const r = parseInt(value.slice(0, 2), 16);
@@ -39,58 +39,46 @@ function withAlpha(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function fadeGradient(color: string) {
-  return `linear-gradient(to bottom, ${color} 0%, ${withAlpha(color, 0.7)} 8%, ${withAlpha(color, 0.28)} 16%, ${withAlpha(color, 0)} 30%, ${withAlpha(color, 0)} 58%, ${withAlpha(color, 0.4)} 78%, ${withAlpha(color, 0.88)} 92%, ${color} 100%)`;
+function photoMaskGradient() {
+  return 'linear-gradient(to bottom, transparent 0%, #000 16%, #000 52%, transparent 100%)';
 }
 
-function HeroFade({
-  color,
-  height,
-  topInset,
-}: {
-  color: string;
-  height: number;
-  topInset: number;
-}) {
-  const fade = fadeGradient(color);
+function heroBlendCss(color: string) {
+  const clear = withAlpha(color, 0);
+  return `linear-gradient(to bottom, ${color} 0%, ${withAlpha(color, 0.55)} 10%, ${clear} 26%, ${clear} 48%, ${withAlpha(color, 0.28)} 66%, ${withAlpha(color, 0.7)} 84%, ${color} 100%)`;
+}
 
-  if (Platform.OS === 'web') {
-    return (
-      <View pointerEvents="none" style={[styles.heroFade, { backgroundImage: fade } as object]} />
-    );
-  }
-
-  const topBand = Math.round(Math.max(topInset + 28, height * 0.24));
-  const bottomBand = Math.round(height * 0.42);
-  const topSteps = 10;
-  const bottomSteps = 8;
+function HeroFade({ color }: { color: string }) {
+  const css = heroBlendCss(color);
 
   return (
-    <View pointerEvents="none" style={styles.heroFade}>
-      <View style={{ height: topBand }}>
-        {Array.from({ length: topSteps }, (_, index) => (
-          <View
-            key={`top-${index}`}
-            style={{
-              flex: 1,
-              backgroundColor: color,
-              opacity: ((topSteps - index) / topSteps) ** 1.35,
-            }}
-          />
-        ))}
-      </View>
-      <View style={{ flex: 1 }} />
-      <View style={{ height: bottomBand }}>
-        {Array.from({ length: bottomSteps }, (_, index) => {
-          const t = (index + 1) / bottomSteps;
-          return (
-            <View
-              key={`bottom-${index}`}
-              style={{ flex: 1, backgroundColor: color, opacity: t * t }}
-            />
-          );
-        })}
-      </View>
+    <View
+      pointerEvents="none"
+      collapsable={false}
+      style={[
+        styles.heroFade,
+        { experimental_backgroundImage: css },
+        Platform.OS === 'web' ? ({ backgroundImage: css } as object) : null,
+      ]}
+    />
+  );
+}
+
+function PhotoBlendOverlay({ width, height }: { width: number; height: number }) {
+  return (
+    <View
+      pointerEvents="none"
+      collapsable={false}
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width,
+        height,
+        zIndex: 8,
+        elevation: 8,
+      }}>
+      <RNImage source={heroBlend} resizeMode="stretch" style={{ width, height }} />
     </View>
   );
 }
@@ -105,8 +93,6 @@ function Stat({ value, label }: { value: string; label: string }) {
     </View>
   );
 }
-
-const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 function ProfileHero({
   user,
@@ -130,6 +116,7 @@ function ProfileHero({
   const [photoFailed, setPhotoFailed] = useState(false);
   const showPhoto = Boolean(photoUrl) && !photoFailed;
   const extra = Math.round(maxHeight * 0.28);
+  const photoHeight = maxHeight + extra;
 
   useEffect(() => {
     setPhotoFailed(false);
@@ -139,53 +126,100 @@ function ProfileHero({
 
   const photoMotion = useAnimatedStyle(() => {
     const shift = interpolate(scrollY.value, [0, maxHeight], [0, extra], Extrapolation.CLAMP);
-    const blurPx = interpolate(scrollY.value, [0, blurDistance], [0, 18], Extrapolation.CLAMP);
+    const blurPx = interpolate(scrollY.value, [0, blurDistance], [0, 16], Extrapolation.CLAMP);
 
     if (Platform.OS === 'web') {
       return {
-        transform: [{ translateY: shift }],
+        top: shift,
         filter: `blur(${blurPx}px)`,
       };
     }
 
     return {
-      transform: [{ translateY: shift }],
+      top: shift,
     };
   });
 
-  const blurProps = useAnimatedProps(() => ({
-    blurRadius: interpolate(scrollY.value, [0, blurDistance], [0, 16], Extrapolation.CLAMP),
-  }));
-
   return (
-    <View collapsable={false} style={[styles.hero, { width, height: maxHeight }]}>
-      {showPhoto ? (
-        <Animated.View style={[{ width, height: maxHeight + extra }, photoMotion]}>
-          <AnimatedImage
+    <View
+      collapsable={false}
+      style={[
+        styles.hero,
+        {
+          width,
+          height: maxHeight,
+          backgroundColor: theme.background,
+          marginBottom: -Spacing.four,
+        },
+      ]}>
+      <View
+        collapsable={false}
+        style={[
+          styles.heroPhotoLayer,
+          Platform.OS === 'web' ? ({ opacity: 0.999, isolation: 'isolate' } as object) : null,
+        ]}>
+        {showPhoto ? (
+          Platform.OS === 'web' ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                {
+                  position: 'absolute',
+                  left: 0,
+                  width,
+                  height: photoHeight,
+                  backgroundImage: `url(${JSON.stringify(photoUrl)})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  maskImage: photoMaskGradient(),
+                  WebkitMaskImage: photoMaskGradient(),
+                } as object,
+                photoMotion,
+              ]}
+            />
+          ) : (
+            <View collapsable={false} style={{ width, height: maxHeight, overflow: 'hidden' }}>
+              <ImageBackground
+                pointerEvents="none"
+                source={{ uri: photoUrl }}
+                resizeMode="cover"
+                accessibilityLabel={`${user.displayName}'s profile photo`}
+                onError={() => setPhotoFailed(true)}
+                style={{ width, height: maxHeight }}
+                imageStyle={{ width, height: photoHeight, elevation: 0 }}>
+                <RNImage
+                  pointerEvents="none"
+                  source={heroBlend}
+                  resizeMode="stretch"
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    width,
+                    height: maxHeight,
+                    zIndex: 2,
+                    elevation: 6,
+                  }}
+                />
+              </ImageBackground>
+            </View>
+          )
+        ) : (
+          <View
             pointerEvents="none"
-            source={{ uri: photoUrl }}
-            style={{ width, height: maxHeight + extra }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            transition={0}
-            recyclingKey={photoUrl}
-            accessibilityLabel={`${user.displayName}'s profile photo`}
-            onError={() => setPhotoFailed(true)}
-            animatedProps={Platform.OS === 'web' ? undefined : blurProps}
+            style={[
+              { width, height: maxHeight, backgroundColor: user.accentColor },
+              { experimental_backgroundImage: wash },
+              Platform.OS === 'web' ? ({ backgroundImage: wash } as object) : null,
+            ]}
           />
-        </Animated.View>
-      ) : (
-        <View
-          pointerEvents="none"
-          style={[
-            { width, height: maxHeight, backgroundColor: user.accentColor },
-            { experimental_backgroundImage: wash },
-            Platform.OS === 'web' ? ({ backgroundImage: wash } as object) : null,
-          ]}
-        />
-      )}
+        )}
+      </View>
 
-      <HeroFade color={theme.background} height={maxHeight} topInset={topInset} />
+      {showPhoto && Platform.OS !== 'web' ? (
+        <PhotoBlendOverlay width={width} height={maxHeight} />
+      ) : null}
+      <HeroFade color={theme.background} />
 
       {subtitle ? (
         <View pointerEvents="none" style={[styles.heroChrome, { paddingTop: topInset + Spacing.two }]}>
@@ -379,14 +413,21 @@ const styles = StyleSheet.create({
   hero: {
     overflow: 'hidden',
   },
+  heroPhotoLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+    elevation: 0,
+  },
   heroFade: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
+    elevation: 2,
   },
   stickyChrome: {
     position: 'absolute',
     top: 0,
     right: 0,
-    zIndex: 3,
+    zIndex: 4,
     paddingHorizontal: Spacing.three,
   },
   heroChrome: {
@@ -394,6 +435,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
+    zIndex: 3,
     paddingHorizontal: Spacing.three,
   },
   heroIdentity: {
@@ -401,6 +443,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    zIndex: 12,
+    elevation: 12,
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.two,
     gap: Spacing.half,
