@@ -69,7 +69,7 @@ export default function RootLayout() {
               <Stack.Screen name="user/[id]" options={{ title: '' }} />
               <Stack.Screen
                 name="compose"
-                options={{ title: 'Share a song', presentation: 'modal' }}
+                options={{ headerShown: false, presentation: 'modal' }}
               />
               <Stack.Screen
                 name="edit-profile"

@@ -17,6 +17,7 @@ const icons = {
   liked: { ios: 'heart.fill', android: 'favorite', web: 'favorite' },
   comment: { ios: 'bubble.right', android: 'chat_bubble', web: 'chat_bubble' },
   add: { ios: 'plus', android: 'add', web: 'add' },
+  back: { ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' },
   compose: { ios: 'plus.circle.fill', android: 'add_circle', web: 'add_circle' },
   addPerson: { ios: 'person.badge.plus', android: 'person_add', web: 'person_add' },
   check: { ios: 'checkmark', android: 'check', web: 'check' },

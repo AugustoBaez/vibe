@@ -10,6 +10,7 @@ import { TrackRow } from '@/components/track-row';
 import { Artwork } from '@/components/ui/artwork';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Icon } from '@/components/ui/icon';
 import { Section } from '@/components/ui/section';
 import { TextField } from '@/components/ui/text-field';
 import { Radius, Spacing } from '@/constants/theme';
@@ -53,6 +54,17 @@ export default function ComposeScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <View style={[styles.backRow, { paddingTop: Math.max(insets.top, Spacing.two) }]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          hitSlop={12}
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
+          <Icon name="back" size={24} color={theme.text} />
+        </Pressable>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -218,21 +230,11 @@ export default function ComposeScreen() {
         </View>
       </ScrollView>
 
-      <View
-        style={[
-          styles.footer,
-          {
-            borderTopColor: theme.border,
-            paddingBottom: Math.max(insets.bottom, Spacing.three),
-          },
-        ]}>
-        <Button
-          label={subject ? 'Share to feed' : 'Pick something to share'}
-          disabled={!subject}
-          onPress={share}
-          stretch
-        />
-      </View>
+      {subject ? (
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing.three) }]}>
+          <Button label="Share to feed" onPress={share} stretch />
+        </View>
+      ) : null}
     </ThemedView>
   );
 }
@@ -243,8 +245,18 @@ const styles = StyleSheet.create({
   },
   content: {
     gap: Spacing.four,
-    paddingTop: Spacing.three,
+    paddingTop: Spacing.two,
     paddingBottom: Spacing.four,
+  },
+  backRow: {
+    paddingHorizontal: Spacing.one,
+    paddingBottom: Spacing.one,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   kindRow: {
     flexDirection: 'row',
@@ -281,7 +293,6 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: Spacing.three,
     paddingTop: Spacing.three,
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
   pressed: {
     opacity: 0.6,
