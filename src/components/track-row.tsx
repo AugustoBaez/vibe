@@ -36,7 +36,7 @@ export function TrackRow({ track, rank, right, onPress, selected = false }: Trac
         </ThemedText>
       ) : null}
 
-      <Artwork seed={track.id} url={track.artworkUrl} size={48} />
+      <Artwork seed={track.id} url={track.artworkUrl} size={56} />
 
       <View style={styles.meta}>
         <ThemedText type="defaultBold" numberOfLines={1}>

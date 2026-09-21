@@ -44,7 +44,7 @@ export default function FeedScreen() {
               accessibilityLabel="Share a song"
               onPress={() => router.push('/compose')}
               style={({ pressed }) => [pressed && styles.pressed]}>
-              <Icon name="compose" size={30} color={theme.accent} />
+              <Icon name="add" size={28} color="#FFFFFF" />
             </Pressable>
           }
         />

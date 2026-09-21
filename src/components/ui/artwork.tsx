@@ -16,13 +16,16 @@ export type ArtworkProps = {
 
 export function Artwork({ seed, url, size = 56, kind = 'track', radius }: ArtworkProps) {
   const borderRadius = radius ?? Radius.small;
+  const imageUrl = url?.trim();
 
-  if (url) {
+  if (imageUrl) {
     return (
       <Image
-        source={{ uri: url }}
-        style={{ width: size, height: size, borderRadius }}
+        source={{ uri: imageUrl }}
+        style={{ width: size, height: size, borderRadius, backgroundColor: '#3F3F46' }}
         contentFit="cover"
+        cachePolicy="memory-disk"
+        transition={150}
       />
     );
   }

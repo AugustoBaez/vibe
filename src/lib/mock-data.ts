@@ -10,8 +10,27 @@ const HOUR = 60 * MINUTE;
 
 export const CURRENT_USER_ID = 'u_me';
 
+const COVER = {
+  t01: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/cb/7b/a9/cb7ba903-b5f1-cc21-90db-7a81b7aa0997/724596951057.jpg/300x300bb.jpg',
+  t02: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/f1/3c/d7/f13cd7ab-7319-028a-8807-5991d0b308d4/0044003187658_Cover.jpg/300x300bb.jpg',
+  t03: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/45/68/bb4568f3-68cd-619d-fbcb-4e179916545d/BlondCover-Final.jpg/300x300bb.jpg',
+  t04: 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/20/4c/6e/204c6ef3-8e95-4cee-2256-202ca62aebed/60220.jpg/300x300bb.jpg',
+  t05: 'https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/dd/50/c7/dd50c790-99ac-d3d0-5ab8-e3891fb8fd52/634904032463.png/300x300bb.jpg',
+  t06: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/e5/06/cc/e506ccd5-56ec-3d4c-69f7-14900bea74f0/mzi.bbgsikee.jpg/300x300bb.jpg',
+  t07: 'https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/b5/a6/91/b5a69171-5232-3d5b-9c15-8963802f83dd/15UMGIM15814.rgb.jpg/300x300bb.jpg',
+  t08: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/d2/48/f4/d248f4ae-a7e4-a48e-1588-6617de3e8d76/mzi.izeorbmm.jpg/300x300bb.jpg',
+  t09: 'https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/66/00/2c/66002c66-9fc6-5a16-654f-8409873352d4/075679747020.jpg/300x300bb.jpg',
+  t10: 'https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/6c/8a/30/6c8a304c-fb97-95bb-b8cd-afc1e9901121/8134130813826.jpg/300x300bb.jpg',
+  t11: 'https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/76/5d/55/765d554e-e421-0299-783f-d78ad559d5e5/5021392959191.png/300x300bb.jpg',
+  t12: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/ea/24/e2/ea24e228-6bf1-625a-11dc-d83d5ee780e6/18UMGIM53788.rgb.jpg/300x300bb.jpg',
+  t13: 'https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/72/f3/ed/72f3edba-cbb0-4887-bb89-4aedf97ecd12/888880287779.jpg/300x300bb.jpg',
+  t14: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/45/68/bb4568f3-68cd-619d-fbcb-4e179916545d/BlondCover-Final.jpg/300x300bb.jpg',
+  t15: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/39/91/4f/39914f60-e9aa-4ae9-3962-44b0a5e5d570/656605150062.jpg/300x300bb.jpg',
+  t16: 'https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/65/e3/e7/65e3e740-b69f-f5cb-f2e6-7dedb5265ac9/19UMGIM96748.rgb.jpg/300x300bb.jpg',
+} as const;
+
 function track(
-  id: string,
+  id: keyof typeof COVER,
   name: string,
   artist: string,
   album: string,
@@ -23,7 +42,7 @@ function track(
     artist,
     album,
     durationMs,
-    artworkUrl: '',
+    artworkUrl: COVER[id],
     spotifyUrl: `https://open.spotify.com/track/${id}`,
   };
 }
@@ -52,7 +71,7 @@ function playlist(
   name: string,
   description: string,
   ownerName: string,
-  trackIds: string[]
+  trackIds: (keyof typeof COVER)[]
 ): Playlist {
   return {
     id,
@@ -61,7 +80,7 @@ function playlist(
     ownerName,
     trackIds,
     trackCount: trackIds.length * 7,
-    artworkUrl: '',
+    artworkUrl: COVER[trackIds[0]] ?? '',
     spotifyUrl: `https://open.spotify.com/playlist/${id}`,
   };
 }

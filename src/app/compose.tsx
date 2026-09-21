@@ -1,19 +1,21 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PlaylistCard } from '@/components/playlist-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { TrackRow } from '@/components/track-row';
+import { Artwork } from '@/components/ui/artwork';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Section } from '@/components/ui/section';
 import { TextField } from '@/components/ui/text-field';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { usePlaylists, useSearchTracks } from '@/stores/catalog-store';
+import { useTrackSearch } from '@/lib/spotify/use-track-search';
+import { usePlaylist, usePlaylists, useTrack } from '@/stores/catalog-store';
 import { useFeedStore } from '@/stores/feed-store';
 import { useCurrentUserId } from '@/stores/session-store';
 import { useUser } from '@/stores/users-store';
@@ -35,8 +37,10 @@ export default function ComposeScreen() {
   const [subject, setSubject] = useState<PostSubject | null>(null);
   const [caption, setCaption] = useState('');
 
-  const tracks = useSearchTracks(query);
+  const { tracks, loading, connected } = useTrackSearch(query);
   const playlists = usePlaylists(me?.playlistIds ?? []);
+  const selectedTrack = useTrack(subject?.kind === 'track' ? subject.trackId : null);
+  const selectedPlaylist = usePlaylist(subject?.kind === 'playlist' ? subject.playlistId : null);
 
   function share() {
     if (!subject) return;
@@ -44,6 +48,8 @@ export default function ComposeScreen() {
     createPost({ authorId: currentUserId, caption, subject });
     router.back();
   }
+
+  const noTrackMatches = kind === 'track' && query.trim().length > 0 && !loading && tracks.length === 0;
 
   return (
     <ThemedView style={styles.container}>
@@ -79,49 +85,124 @@ export default function ComposeScreen() {
           <>
             <View style={styles.padded}>
               <TextField
-                placeholder="Search your songs"
+                placeholder={connected ? 'Search Spotify' : 'Search songs'}
                 value={query}
                 onChangeText={setQuery}
                 autoCorrect={false}
                 autoCapitalize="none"
+                returnKeyType="search"
                 clearButtonMode="while-editing"
+                hint={
+                  connected
+                    ? undefined
+                    : 'Connect Spotify to search the full catalog.'
+                }
               />
             </View>
 
-            <Section title="Pick a song">
+            {selectedTrack ? (
+              <View style={styles.padded}>
+                <View
+                  style={[
+                    styles.preview,
+                    { backgroundColor: theme.backgroundElement, borderColor: theme.border },
+                  ]}>
+                  <Artwork seed={selectedTrack.id} url={selectedTrack.artworkUrl} size={132} />
+                  <View style={styles.previewMeta}>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      Sharing
+                    </ThemedText>
+                    <ThemedText type="defaultBold" numberOfLines={2}>
+                      {selectedTrack.name}
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
+                      {selectedTrack.artist}
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
+            <Section title={connected && query.trim() ? 'Spotify results' : 'Pick a song'}>
               <View style={styles.sectionBody}>
-                {tracks.map((track) => (
-                  <TrackRow
-                    key={track.id}
-                    track={track}
-                    selected={subject?.kind === 'track' && subject.trackId === track.id}
-                    onPress={() => setSubject({ kind: 'track', trackId: track.id })}
+                {loading ? (
+                  <View style={styles.loading}>
+                    <ActivityIndicator color={theme.accent} />
+                  </View>
+                ) : noTrackMatches ? (
+                  <EmptyState
+                    icon="search"
+                    title="No songs found"
+                    description={
+                      connected
+                        ? `Nothing on Spotify matched “${query.trim()}”.`
+                        : 'Connect Spotify to search every song.'
+                    }
                   />
-                ))}
+                ) : (
+                  tracks.map((track) => (
+                    <TrackRow
+                      key={track.id}
+                      track={track}
+                      selected={subject?.kind === 'track' && subject.trackId === track.id}
+                      onPress={() => setSubject({ kind: 'track', trackId: track.id })}
+                    />
+                  ))
+                )}
               </View>
             </Section>
           </>
         ) : (
-          <Section title="Pick a playlist">
-            <View style={styles.sectionBody}>
-              {playlists.length === 0 ? (
-                <EmptyState
-                  icon="playlist"
-                  title="No playlists yet"
-                  description="Connect Spotify to pull in your playlists."
-                />
-              ) : (
-                playlists.map((playlist) => (
-                  <PlaylistCard
-                    key={playlist.id}
-                    playlist={playlist}
-                    selected={subject?.kind === 'playlist' && subject.playlistId === playlist.id}
-                    onPress={() => setSubject({ kind: 'playlist', playlistId: playlist.id })}
+          <>
+            {selectedPlaylist ? (
+              <View style={styles.padded}>
+                <View
+                  style={[
+                    styles.preview,
+                    { backgroundColor: theme.backgroundElement, borderColor: theme.border },
+                  ]}>
+                  <Artwork
+                    seed={selectedPlaylist.id}
+                    url={selectedPlaylist.artworkUrl}
+                    size={132}
+                    kind="playlist"
                   />
-                ))
-              )}
-            </View>
-          </Section>
+                  <View style={styles.previewMeta}>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      Sharing
+                    </ThemedText>
+                    <ThemedText type="defaultBold" numberOfLines={2}>
+                      {selectedPlaylist.name}
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
+                      {selectedPlaylist.trackCount} tracks · {selectedPlaylist.ownerName}
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
+            <Section title="Pick a playlist">
+              <View style={styles.sectionBody}>
+                {playlists.length === 0 ? (
+                  <EmptyState
+                    icon="playlist"
+                    title="No playlists yet"
+                    description="Connect Spotify to pull in your playlists."
+                  />
+                ) : (
+                  playlists.map((playlist) => (
+                    <PlaylistCard
+                      key={playlist.id}
+                      playlist={playlist}
+                      selected={subject?.kind === 'playlist' && subject.playlistId === playlist.id}
+                      onPress={() => setSubject({ kind: 'playlist', playlistId: playlist.id })}
+                    />
+                  ))
+                )}
+              </View>
+            </Section>
+          </>
         )}
 
         <View style={styles.padded}>
@@ -178,8 +259,24 @@ const styles = StyleSheet.create({
   padded: {
     paddingHorizontal: Spacing.three,
   },
+  preview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+    padding: Spacing.two,
+    borderRadius: Radius.medium,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  previewMeta: {
+    flex: 1,
+    gap: Spacing.half,
+  },
   sectionBody: {
     paddingHorizontal: Spacing.two,
+  },
+  loading: {
+    paddingVertical: Spacing.five,
+    alignItems: 'center',
   },
   footer: {
     paddingHorizontal: Spacing.three,
