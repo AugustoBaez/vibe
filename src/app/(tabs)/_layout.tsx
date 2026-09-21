@@ -49,7 +49,7 @@ function FloatingTabBar({ state, descriptors, navigation }: FloatingTabBarProps)
         style={[
           styles.pill,
           {
-            backgroundColor: isDark ? 'rgba(28, 28, 30, 0.72)' : 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: isDark ? 'rgba(16, 16, 16, 0.72)' : 'rgba(255, 255, 255, 0.8)',
             borderColor: isDark ? 'rgba(255, 255, 255, 0.14)' : 'rgba(0, 0, 0, 0.08)',
           },
           Platform.OS === 'web'
@@ -150,11 +150,6 @@ const styles = StyleSheet.create({
     borderRadius: PILL_HEIGHT / 2,
     overflow: 'hidden',
     borderWidth: StyleSheet.hairlineWidth,
-    elevation: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.28,
-    shadowRadius: 20,
   },
   item: {
     flex: 1,

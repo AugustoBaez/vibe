@@ -7,6 +7,11 @@
     "icon": "./assets/images/icon.png",
     "scheme": "vibe",
     "userInterfaceStyle": "dark",
+    "backgroundColor": "#101010",
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#101010"
+    },
     "ios": {
       "icon": "./assets/expo.icon"
     },
@@ -29,12 +34,13 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#101010",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-system-ui"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 
@@ -11,6 +12,7 @@ import { useSpotifySync } from '@/lib/spotify/use-spotify-sync';
 import { useIsSignedIn, useSessionHydrated, useSessionStore } from '@/stores/session-store';
 
 SplashScreen.preventAutoHideAsync();
+void SystemUI.setBackgroundColorAsync(Colors.dark.background);
 
 export default function RootLayout() {
   const scheme = useColorScheme();
