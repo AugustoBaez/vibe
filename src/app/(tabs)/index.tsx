@@ -8,7 +8,6 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Icon } from '@/components/ui/icon';
 import { ScreenHeader } from '@/components/ui/screen-header';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -35,19 +34,7 @@ export default function FeedScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.safeArea}>
-        <ScreenHeader
-          title="vibe"
-          subtitle="what everyone is listening to"
-          action={
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Share a song"
-              onPress={() => router.push('/compose')}
-              style={({ pressed }) => [pressed && styles.pressed]}>
-              <Icon name="add" size={28} color="#FFFFFF" />
-            </Pressable>
-          }
-        />
+        <ScreenHeader title="vibe" subtitle="what everyone is listening to" />
 
         <View style={styles.scopeRow}>
           {(['everyone', 'following'] as const).map((value) => (
@@ -71,6 +58,23 @@ export default function FeedScreen() {
             </Pressable>
           ))}
         </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Share a song"
+          onPress={() => router.push('/compose')}
+          style={({ pressed }) => [
+            styles.composer,
+            {
+              backgroundColor: theme.backgroundElement,
+              borderColor: theme.border,
+            },
+            pressed && styles.pressed,
+          ]}>
+          <ThemedText type="small" themeColor="textSecondary">
+            what are u vibin to?
+          </ThemedText>
+        </Pressable>
 
         <FlatList
           data={postIds}
@@ -119,6 +123,15 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one + 2,
     paddingHorizontal: Spacing.three,
     borderRadius: Radius.pill,
+  },
+  composer: {
+    marginHorizontal: Spacing.three,
+    marginBottom: Spacing.three,
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.three,
+    borderRadius: Radius.medium,
+    borderWidth: 1,
   },
   list: {
     paddingBottom: BottomTabInset + Spacing.four,

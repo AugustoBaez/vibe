@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PlaylistCard } from '@/components/playlist-card';
@@ -116,20 +116,29 @@ export default function ComposeScreen() {
               <View style={styles.padded}>
                 <View
                   style={[
-                    styles.preview,
+                    styles.draft,
                     { backgroundColor: theme.backgroundElement, borderColor: theme.border },
                   ]}>
-                  <Artwork seed={selectedTrack.id} url={selectedTrack.artworkUrl} size={132} />
-                  <View style={styles.previewMeta}>
-                    <ThemedText type="small" themeColor="textSecondary">
-                      Sharing
-                    </ThemedText>
-                    <ThemedText type="defaultBold" numberOfLines={2}>
-                      {selectedTrack.name}
-                    </ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
-                      {selectedTrack.artist}
-                    </ThemedText>
+                  <TextInput
+                    placeholder="what are u vibin to?"
+                    placeholderTextColor={theme.textSecondary}
+                    value={caption}
+                    onChangeText={setCaption}
+                    multiline
+                    maxLength={280}
+                    autoFocus
+                    style={[styles.caption, { color: theme.text }]}
+                  />
+                  <View style={[styles.attached, { borderColor: theme.border }]}>
+                    <Artwork seed={selectedTrack.id} url={selectedTrack.artworkUrl} size={56} />
+                    <View style={styles.previewMeta}>
+                      <ThemedText type="defaultBold" numberOfLines={1}>
+                        {selectedTrack.name}
+                      </ThemedText>
+                      <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                        {selectedTrack.artist} · {selectedTrack.album}
+                      </ThemedText>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -170,25 +179,34 @@ export default function ComposeScreen() {
               <View style={styles.padded}>
                 <View
                   style={[
-                    styles.preview,
+                    styles.draft,
                     { backgroundColor: theme.backgroundElement, borderColor: theme.border },
                   ]}>
-                  <Artwork
-                    seed={selectedPlaylist.id}
-                    url={selectedPlaylist.artworkUrl}
-                    size={132}
-                    kind="playlist"
+                  <TextInput
+                    placeholder="what are u vibin to?"
+                    placeholderTextColor={theme.textSecondary}
+                    value={caption}
+                    onChangeText={setCaption}
+                    multiline
+                    maxLength={280}
+                    autoFocus
+                    style={[styles.caption, { color: theme.text }]}
                   />
-                  <View style={styles.previewMeta}>
-                    <ThemedText type="small" themeColor="textSecondary">
-                      Sharing
-                    </ThemedText>
-                    <ThemedText type="defaultBold" numberOfLines={2}>
-                      {selectedPlaylist.name}
-                    </ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary" numberOfLines={2}>
-                      {selectedPlaylist.trackCount} tracks · {selectedPlaylist.ownerName}
-                    </ThemedText>
+                  <View style={[styles.attached, { borderColor: theme.border }]}>
+                    <Artwork
+                      seed={selectedPlaylist.id}
+                      url={selectedPlaylist.artworkUrl}
+                      size={56}
+                      kind="playlist"
+                    />
+                    <View style={styles.previewMeta}>
+                      <ThemedText type="defaultBold" numberOfLines={1}>
+                        {selectedPlaylist.name}
+                      </ThemedText>
+                      <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
+                        {selectedPlaylist.trackCount} tracks · {selectedPlaylist.ownerName}
+                      </ThemedText>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -216,18 +234,6 @@ export default function ComposeScreen() {
             </Section>
           </>
         )}
-
-        <View style={styles.padded}>
-          <TextField
-            label="Caption"
-            placeholder="Say something about it"
-            value={caption}
-            onChangeText={setCaption}
-            multiline
-            maxLength={280}
-            hint={`${caption.length}/280`}
-          />
-        </View>
       </ScrollView>
 
       {subject ? (
@@ -271,7 +277,20 @@ const styles = StyleSheet.create({
   padded: {
     paddingHorizontal: Spacing.three,
   },
-  preview: {
+  draft: {
+    gap: Spacing.three,
+    padding: Spacing.three,
+    borderRadius: Radius.medium,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  caption: {
+    fontSize: 16,
+    lineHeight: 22,
+    minHeight: 44,
+    padding: 0,
+    textAlignVertical: 'top',
+  },
+  attached: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
