@@ -60,6 +60,17 @@ function pickArtwork(images: SpotifyImage[] | null | undefined, preferred = 300)
   return scored[0]?.url ?? images[0]?.url ?? '';
 }
 
+/** Profile photos should use the biggest asset Spotify sent, not a ~300px cover. */
+function pickLargestImage(images: SpotifyImage[] | null | undefined) {
+  if (!images?.length) return '';
+
+  const ranked = images
+    .filter((image) => image.url)
+    .sort((a, b) => (b.width ?? 0) - (a.width ?? 0) || (b.height ?? 0) - (a.height ?? 0));
+
+  return ranked[0]?.url ?? images[0]?.url ?? '';
+}
+
 function uniqueById<T extends { id: string }>(items: T[]) {
   const seen = new Set<string>();
   return items.filter((item) => {
@@ -110,7 +121,7 @@ export async function fetchMyProfile() {
   return {
     id: raw.id,
     displayName: raw.display_name ?? '',
-    avatarUrl: raw.images?.[0]?.url ?? '',
+    avatarUrl: pickLargestImage(raw.images),
   };
 }
 
