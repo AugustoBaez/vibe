@@ -1,8 +1,11 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
 import { mockPlaylists, mockTracks } from '@/lib/mock-data';
 import type { Playlist, Track } from '@/types';
+
+import { asyncStorage } from './storage';
 
 /**
  * Cache of music metadata. Seeded from mock data and topped up by the Spotify
@@ -21,16 +24,79 @@ function byId<T extends { id: string }>(items: T[]) {
   return Object.fromEntries(items.map((item) => [item.id, item]));
 }
 
-export const useCatalogStore = create<CatalogState>()((set) => ({
-  tracks: byId(mockTracks),
-  playlists: byId(mockPlaylists),
+function mergeByArtwork<T extends { artworkUrl: string }>(
+  seed: Record<string, T>,
+  extra?: Record<string, T>
+): Record<string, T> {
+  const out = { ...seed };
+  if (!extra) return out;
 
-  upsertTracks: (tracks) =>
-    set((state) => ({ tracks: { ...state.tracks, ...byId(tracks) } })),
+  for (const [id, item] of Object.entries(extra)) {
+    const existing = out[id];
+    if (!existing) {
+      out[id] = item;
+      continue;
+    }
 
-  upsertPlaylists: (playlists) =>
-    set((state) => ({ playlists: { ...state.playlists, ...byId(playlists) } })),
-}));
+    out[id] = {
+      ...existing,
+      ...item,
+      artworkUrl: item.artworkUrl || existing.artworkUrl,
+    };
+  }
+
+  return out;
+}
+
+function mergeTracks(seed: Record<string, Track>, extra?: Record<string, Track>): Record<string, Track> {
+  const out = { ...seed };
+  if (!extra) return out;
+
+  for (const [id, item] of Object.entries(extra)) {
+    const existing = out[id];
+    if (!existing) {
+      out[id] = { ...item, previewUrl: item.previewUrl ?? '' };
+      continue;
+    }
+
+    out[id] = {
+      ...existing,
+      ...item,
+      artworkUrl: item.artworkUrl || existing.artworkUrl,
+      previewUrl: item.previewUrl || existing.previewUrl || '',
+    };
+  }
+
+  return out;
+}
+
+export const useCatalogStore = create<CatalogState>()(
+  persist(
+    (set) => ({
+      tracks: byId(mockTracks),
+      playlists: byId(mockPlaylists),
+
+      upsertTracks: (tracks) =>
+        set((state) => ({ tracks: { ...state.tracks, ...byId(tracks) } })),
+
+      upsertPlaylists: (playlists) =>
+        set((state) => ({ playlists: { ...state.playlists, ...byId(playlists) } })),
+    }),
+    {
+      name: 'vibe-catalog',
+      storage: createJSONStorage(() => asyncStorage),
+      partialize: ({ tracks, playlists }) => ({ tracks, playlists }),
+      merge: (persisted, current) => {
+        const extra = (persisted ?? {}) as Partial<CatalogState>;
+        return {
+          ...current,
+          tracks: mergeTracks(current.tracks, extra.tracks),
+          playlists: mergeByArtwork(current.playlists, extra.playlists),
+        };
+      },
+    }
+  )
+);
 
 export function useTrack(trackId: string | null | undefined) {
   return useCatalogStore((state) => (trackId ? state.tracks[trackId] : undefined));

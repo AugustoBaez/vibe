@@ -16,17 +16,17 @@ export const Colors = {
     textSecondary: '#52525B',
     border: '#E4E4E7',
     accent: '#16A34A',
-    like: '#E11D48',
+    like: '#FF0038',
   },
   dark: {
     text: '#FAFAFA',
-    background: '#09090B',
-    backgroundElement: '#17171A',
-    backgroundSelected: '#26262A',
+    background: '#101010',
+    backgroundElement: '#1C1C1C',
+    backgroundSelected: '#2A2A2A',
     textSecondary: '#A1A1AA',
-    border: '#27272A',
+    border: '#242424',
     accent: '#1DB954',
-    like: '#FB7185',
+    like: '#FF0038',
   },
 } as const;
 
@@ -89,5 +89,5 @@ export const Radius = {
   pill: 999,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+export const BottomTabInset = 108;
 export const MaxContentWidth = 800;

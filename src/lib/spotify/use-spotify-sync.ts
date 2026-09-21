@@ -4,7 +4,7 @@ import { useCatalogStore } from '@/stores/catalog-store';
 import { useSessionStore } from '@/stores/session-store';
 import { useUsersStore } from '@/stores/users-store';
 
-import { fetchMyPlaylists, fetchMyProfile, fetchMyTopTracks } from './api';
+import { fetchMyPlaylists, fetchMyProfile, fetchMyRecentlyPlayed, fetchMyTopTracks } from './api';
 
 /**
  * Pulls the signed-in user's Spotify library into the stores once a real token
@@ -20,19 +20,23 @@ export function useSpotifySync() {
     let cancelled = false;
 
     async function sync(userId: string) {
-      const [profile, topTracks, playlists] = await Promise.all([
-        fetchMyProfile(),
-        fetchMyTopTracks(),
-        fetchMyPlaylists(),
+      const [profile, topTracks, recentTracks, playlists] = await Promise.all([
+        fetchMyProfile().catch(() => null),
+        fetchMyTopTracks().catch(() => null),
+        fetchMyRecentlyPlayed().catch(() => null),
+        fetchMyPlaylists().catch(() => null),
       ]);
 
       if (cancelled) return;
 
       const { upsertTracks, upsertPlaylists } = useCatalogStore.getState();
       const { updateProfile, markSpotifyConnected } = useUsersStore.getState();
+      const libraryTracks = [...(topTracks ?? []), ...(recentTracks ?? [])].filter(
+        (track, index, all) => all.findIndex((item) => item.id === track.id) === index
+      );
 
-      if (topTracks?.length) {
-        upsertTracks(topTracks);
+      if (libraryTracks.length) {
+        upsertTracks(libraryTracks);
       }
 
       if (playlists?.length) {
@@ -55,7 +59,9 @@ export function useSpotifySync() {
             ...state.users,
             [userId]: {
               ...user,
-              topTrackIds: topTracks?.map((track) => track.id) ?? user.topTrackIds,
+              topTrackIds: libraryTracks.length
+                ? libraryTracks.slice(0, 20).map((track) => track.id)
+                : user.topTrackIds,
               playlistIds: playlists?.map((playlist) => playlist.id) ?? user.playlistIds,
             },
           },

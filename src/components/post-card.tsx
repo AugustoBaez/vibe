@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { LikeButton } from '@/components/like-button';
 import { PlaylistCard } from '@/components/playlist-card';
 import { ThemedText } from '@/components/themed-text';
 import { TrackRow } from '@/components/track-row';
@@ -45,11 +46,22 @@ export function PostCard({ postId }: { postId: string }) {
 
   if (!post || !author) return null;
 
+  function openComments() {
+    router.push({ pathname: '/post/[id]', params: { id: postId } });
+  }
+
   return (
-    <View style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Open comments"
+      onPress={openComments}
+      style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border }]}>
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.push({ pathname: '/user/[id]', params: { id: author.id } })}
+        onPress={(event) => {
+          event.stopPropagation();
+          router.push({ pathname: '/user/[id]', params: { id: author.id } });
+        }}
         style={({ pressed }) => [styles.header, pressed && styles.pressed]}>
         <Avatar user={author} size={40} />
 
@@ -70,29 +82,20 @@ export function PostCard({ postId }: { postId: string }) {
       </View>
 
       <View style={styles.actions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={liked ? 'Unlike' : 'Like'}
+        <LikeButton
+          liked={liked}
+          count={likeCount}
           onPress={() => toggleLike(postId, currentUserId)}
-          style={({ pressed }) => [styles.action, pressed && styles.pressed]}>
-          <Icon name={liked ? 'liked' : 'like'} size={18} color={liked ? theme.like : theme.textSecondary} />
-          <ThemedText type="small" themeColor="textSecondary">
-            {likeCount}
-          </ThemedText>
-        </Pressable>
+        />
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Open comments"
-          onPress={() => router.push({ pathname: '/post/[id]', params: { id: postId } })}
-          style={({ pressed }) => [styles.action, pressed && styles.pressed]}>
+        <View style={styles.action}>
           <Icon name="comment" size={18} color={theme.textSecondary} />
           <ThemedText type="small" themeColor="textSecondary">
             {commentCount}
           </ThemedText>
-        </Pressable>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -124,7 +127,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.four,
-    paddingHorizontal: Spacing.half,
   },
   action: {
     flexDirection: 'row',

@@ -12,6 +12,8 @@ export type Track = {
   durationMs: number;
   /** Album art URL. Empty string means "render a generated cover". */
   artworkUrl: string;
+  /** 30s preview URL (Spotify `preview_url` or iTunes). Empty if unavailable. */
+  previewUrl: string;
   spotifyUrl: string;
 };
 

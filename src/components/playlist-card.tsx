@@ -20,7 +20,14 @@ export function PlaylistCard({ playlist, onPress, selected = false }: PlaylistCa
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Playlist ${playlist.name}`}
-      onPress={onPress ?? (() => openSpotifyLink(playlist.spotifyUrl))}
+      onPress={(event) => {
+        event.stopPropagation();
+        if (onPress) {
+          onPress();
+          return;
+        }
+        openSpotifyLink(playlist.spotifyUrl);
+      }}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: selected ? theme.backgroundSelected : theme.backgroundElement },
